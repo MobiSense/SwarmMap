@@ -1,5 +1,7 @@
 # SwarmMap
 
+[![Watch the video](https://img.youtube.com/vi/CXOAqzn6szo/maxresdefault.jpg)](https://youtu.be/CXOAqzn6szo)
+
 🚧 Under Construction
 
 # 1. Related Publications
