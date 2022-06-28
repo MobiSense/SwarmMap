@@ -1,0 +1,7 @@
+SwarmMap is released under a GPLv3 license (see License-gpl.txt).
+Please see Dependencies.md for a list of all included code and library dependencies which are not property of the authors of SwarmMap.
+
+For a closed-source version of SwarmMap for commercial purposes, please contact the authors.
+
+If you use SwarmMap in academic work, please cite the most relevant publication associated by visiting:
+https://github.com/MobiSense/SwarmMap

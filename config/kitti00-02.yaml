@@ -1,0 +1,5 @@
+%YAML:1.0
+
+TYPE: 'kitti'
+SETTING: '/Examples/Monocular/KITTI00-02.yaml'
+IMAGES: ['/kitti/sequences/00', '/kitti/sequences/01', '/kitti/sequences/02']

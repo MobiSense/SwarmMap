@@ -1,0 +1,5 @@
+%YAML:1.0
+
+TYPE: 'tum'
+SETTING: '/Examples/Monocular/TUM2.yaml'
+IMAGES: ['/rgbd_dataset_freiburg2_desk']

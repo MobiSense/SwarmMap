@@ -1,0 +1,6 @@
+%YAML:1.0
+
+TYPE: 'euroc'
+SETTING: '/Examples/Monocular/EuRoC.yaml'
+IMAGES: ['/V2_01_easy/mav0/cam0/data', '/V2_02_medium/mav0/cam0/data', '/V2_03_difficult/mav0/cam0/data']
+TIMES: ['/Examples/Monocular/EuRoC_TimeStamps/V201.txt', '/Examples/Monocular/EuRoC_TimeStamps/V202.txt', '/Examples/Monocular/EuRoC_TimeStamps/V203.txt']

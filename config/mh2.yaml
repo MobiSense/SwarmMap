@@ -1,0 +1,6 @@
+%YAML:1.0
+
+TYPE: 'euroc'
+SETTING: '/Examples/Monocular/EuRoC.yaml'
+IMAGES: ['/MH_02_easy/mav0/cam0/data']
+TIMES: ['/home/slam/edge-slam-new/src/Examples/Monocular/EuRoC_TimeStamps/MH02.txt']
