@@ -41,8 +41,8 @@ In this document we list all the pieces of code included by SwarmMap and linked 
 * **ROS (Optional, only if you build Examples/ROS)**.
   BSD license. In the manifest.xml the only declared package dependencies are roscpp, tf, sensor_msgs, image_transport, cv_bridge, which are all BSD licensed.
 
-* **spdlog**
+* **spdlog**.
   MIT License
 
-* **boost**
+* **boost**.
   Boost Software License 1.0

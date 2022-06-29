@@ -1,6 +1,6 @@
 # SwarmMap
 
-[![Watch the video](https://img.youtube.com/vi/CXOAqzn6szo/maxresdefault.jpg)](https://youtu.be/CXOAqzn6szo)
+[![Watch the video](https://i.imgur.com/TIw235B.jpeg)](https://youtu.be/CXOAqzn6szo)
 
 🚧 Under Construction
 
@@ -9,10 +9,10 @@
 Xu, J., Cao, H., Yang, Z., Shangguan, L., Zhang, J., He, X., & Liu, Y. (2022). {SwarmMap}: Scaling Up Real-time Collaborative Visual {SLAM} at the Edge. In 19th USENIX Symposium on Networked Systems Design and Implementation (NSDI 22) (pp. 977-993).
 
 # 2. License
-SwarmMap is released under a [GPLv3 license](https://github.com/MobiSense/SwarmMap/blob/master/licencse_gpl.txt). For a list of all code/library dependencies (and associated licenses), please see [Dependencies.md](https://github.com/MobiSense/SwarmMap/blob/master/thirdparty/thirdparty_code.md).
+SwarmMap is released under a [GPLv3 license](https://github.com/MobiSense/SwarmMap/blob/master/LICENSE.txt). For a list of all code/library dependencies (and associated licenses), please see [Dependencies.md](https://github.com/MobiSense/SwarmMap/blob/master/Dependencies.md).
 
 For a closed-source version of SwarmMap for commercial purposes, please contact the author(s):  
-`admin (at) sense-lab (dot) com`
+`admin (at) sense-lab (dot) org`
 
 If you use SwarmMap in academic work, please cite:
 ```BibTeX
@@ -143,4 +143,5 @@ cd SwarmMap/bin/
 ## 6. Acknowledgements
 SwarmMap is based on the following repositories:
 - [ORB-SLAM2](https://github.com/raulmur/ORB_SLAM2)
+- [Dynamic_ORB_SLAM2](https://github.com/Horacehxw/Dynamic_ORB_SLAM2)
 - [ORB-SLAM2-GPU2016-final](https://github.com/yunchih/ORB-SLAM2-GPU2016-final) (GPU version of ORB-SLAM2)
