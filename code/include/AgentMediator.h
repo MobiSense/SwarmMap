@@ -26,6 +26,7 @@ class MapSlice;
 class LoopClosing;
 class KeyFrameDatabase;
 enum TrackingState: int;
+//struct SystemState;
 
 class AgentMediator {
 public:

@@ -194,7 +194,7 @@ void MediatorScheduler::MapDistribute(ORB_SLAM2::AgentMediator *mediator) {
     pMap->ArchiveMap(slice1);
     MapUpdater::Serialize(slice1, result);
 
-    pMap->GetConnectionService()->DistributeMap(result);
+    pMap->GetServerService()->DistributeMap(result);
 //    // TODO(halcao): network
 //    MapSlice slice2;
 //    MapUpdater::Deserialize(slice2, result);

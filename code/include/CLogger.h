@@ -80,7 +80,7 @@ private:
     std::shared_ptr<spdlog::logger> spdlogger_;
 };
 
-#ifndef ClOGGER_SPD_LOG
+#ifndef CLOGGER_SPD_LOG
 #define ClOGGER_SPD_LOG
 #define trace(fmt, ...) \
 do { \

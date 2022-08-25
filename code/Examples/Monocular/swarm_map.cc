@@ -48,7 +48,8 @@
 #include <MediatorScheduler.h>
 #include <MapSlice.h>
 #include <SystemState.h>
-#include "ConnectionService.h"
+#include <ClientService.h>
+//#include "ConnectionService.h"
 #include "CLogger.h"
 #include "Mapit.h"
 #include "DataSetUtil.h"
@@ -71,7 +72,7 @@ void GetTrackingInfo(ORB_SLAM2::System *SLAM, ORB_SLAM2::AgentMediator *mediator
         emptyCountMap[mediator->mnId] = 0;
     }
 
-    SLAM->GetMap()->GetConnectionService()->ReportState(state);
+    SLAM->GetMap()->GetClientService()->ReportState(state);
 }
 
 void UploadMap(ORB_SLAM2::System *SLAM, ORB_SLAM2::AgentMediator *mediator) {
@@ -92,7 +93,7 @@ void UploadMap(ORB_SLAM2::System *SLAM, ORB_SLAM2::AgentMediator *mediator) {
         emptyCountMap[mediator->mnId] = 0;
     }
 
-    SLAM->GetMap()->GetConnectionService()->PushMap(result);
+    SLAM->GetMap()->GetClientService()->PushMap(result);
 }
 
 string GetCurrentTime() {

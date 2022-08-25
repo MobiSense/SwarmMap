@@ -31,7 +31,7 @@
 #include "Map.h"
 #include "LocalMapping.h"
 #include "LoopClosing.h"
-#include "Frame.h"
+//#include "Frame.h"
 #include "ORBVocabulary.h"
 #include "KeyFrameDatabase.h"
 #include "ORBextractor.h"
@@ -58,6 +58,7 @@ class Map;
 class LocalMapping;
 class LoopClosing;
 class System;
+class Frame;
 
 // Tracking states
 enum TrackingState : int {

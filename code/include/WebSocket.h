@@ -28,6 +28,10 @@ struct Request {
     std::string toString() const;
 };
 
+class ConnectionService {
+
+};
+
 namespace WS {
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
@@ -62,7 +66,7 @@ public:
     run(
             char const *host,
             char const *port,
-            char const *text) {
+            __attribute__((unused)) char const *text) {
         // Save these for later
         host_ = host;
 
@@ -241,7 +245,7 @@ class shared_state {
     std::unordered_set<session *> sessions;
 
 public:
-    explicit shared_state(std::string doc_root) {};
+    explicit shared_state(std::string doc_root) { (void)doc_root; };
 
     const std::string &getDocRoot() const noexcept {
         return doc_root;

@@ -55,11 +55,11 @@ namespace ORB_SLAM2 {
     }
 
     bool Map::TryConnect(AgentMediator *pMediator) {
-        pConnectionService = new ConnectionService(pMediator);
+        pConnectionService = new ServerService(pMediator);
     }
 
     bool Map::TryConnect(System *pSLAM) {
-        pConnectionService = new ConnectionService(pSLAM);
+        pConnectionService = new ClientService(pSLAM);
     }
 
 

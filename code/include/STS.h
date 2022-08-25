@@ -7,15 +7,15 @@
 
 namespace ORB_SLAM2 {
 
-class ConnectionService;
+//class ConnectionService;
 
 class STS {
 public:
     void ReportState();
 
-    void SetConnectionService(ConnectionService *connectionService);
+//    void SetConnectionService(ConnectionService *connectionService);
 private:
-    ConnectionService *mpConnectionService;
+//    ConnectionService *mpConnectionService;
 };
 
 }

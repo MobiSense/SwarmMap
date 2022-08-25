@@ -18,39 +18,39 @@ using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
 namespace websocket = boost::beast::websocket;  // from <boost/beast/websocket.hpp>
 using work_guard_type = boost::asio::executor_work_guard<boost::asio::io_context::executor_type>;
 
-ConnectionService::ConnectionService(AgentMediator *pMediator) {
-    // server side
+//ConnectionService::ConnectionService(AgentMediator *pMediator) {
+//    // server side
+//
+//    // first initialize the id dispatching service
+//    if (!dispatchService.get()) {
+//        auto const address = boost::asio::ip::make_address("0.0.0.0");
+//        const int port = 10080;
+//        boost::asio::io_context ioc{1};
+//
+//        // Create and launch a listening port
+//        this->dispatchService = std::make_shared<WS::Server::listener>(ioc,
+//                                                                     tcp::endpoint{address, port},
+//                                                                     std::bind(&ConnectionService::OnRequest, this, std::placeholders::_1));
+//        this->dispatchService->run();
+//    }
+//
+//    this->mpMediator = pMediator;
+//
+//    const auto id = (unsigned int)(mpMediator->mnId);
+//
+//    unsigned int port = 2328 + id;
+//    this->Bind(port);
+//}
 
-    // first initialize the id dispatching service
-    if (!dispatchService.get()) {
-        auto const address = boost::asio::ip::make_address("0.0.0.0");
-        const int port = 10080;
-        boost::asio::io_context ioc{1};
-
-        // Create and launch a listening port
-        this->dispatchService = std::make_shared<WS::Server::listener>(ioc,
-                                                                     tcp::endpoint{address, port},
-                                                                     std::bind(&ConnectionService::OnRequest, this, std::placeholders::_1));
-        this->dispatchService->run();
-    }
-
-    this->mpMediator = pMediator;
-
-    const auto id = (unsigned int)(mpMediator->mnId);
-
-    unsigned int port = 2328 + id;
-    this->Bind(port);
-}
-
-ConnectionService::ConnectionService(System *pSLAM) {
-    // client side
-    this->mpSLAM = pSLAM;
-    const auto id = (unsigned int)(mpSLAM->GetMap()->mnId);
-
-    string host = "0.0.0.0";
-    unsigned int port = (unsigned int)(2328 + id - 1);
-    this->Connect(host, port);
-}
+//ConnectionService::ConnectionService(System *pSLAM) {
+//    // client side
+//    this->mpSLAM = pSLAM;
+//    const auto id = (unsigned int)(mpSLAM->GetMap()->mnId);
+//
+//    string host = "0.0.0.0";
+//    unsigned int port = (unsigned int)(2328 + id - 1);
+//    this->Connect(host, port);
+//}
 
 // Server binds the port
 void ConnectionService::Bind(unsigned int port) {
@@ -139,11 +139,11 @@ void ConnectionService::SendRequest(const Request &req) {
     // serialize and send request
     std::string msg = ORB_SLAM2::toString(req);
 
-    if (isClient()) {
-        this->clientService->send(make_shared<std::string>(msg));
-    } else {
-        this->serverService->send(msg);
-    }
+//    if (isClient()) {
+//        this->clientService->send(make_shared<std::string>(msg));
+//    } else {
+//        this->serverService->send(msg);
+//    }
 }
 
 // handle received request
@@ -154,47 +154,47 @@ void ConnectionService::OnRequest(const std::string &msg) {
     }
 
 
-    Request req;
-
-    try {
-        ORB_SLAM2::toObject<Request>(req, msg);
-    } catch (std::exception &e) {
-        error("parse request failed: {}", e.what());
-        return;
-    }
-
-    if (req.path == "DistributeMap") {
-        // update map on the client
-        if (mpSLAM) {
-            MapSlice slice;
-            MapUpdater::Deserialize(slice, req.body);
-            mpSLAM->GetMap()->UpdateMap(slice);
-        }
-    } else if (req.path == "ReportState") {
-        // update state on the server
-        SystemState state;
-
-        ORB_SLAM2::toObject<SystemState>(state, req.body);
-        mpMediator->SetState(state);
-    } else if (req.path == "PushMap") {
-        if (mpSLAM) {
-            // update map on the client
-            MapSlice slice;
-            MapUpdater::Deserialize(slice, req.body);
-            mpSLAM->GetMap()->GetMapit()->ReceivePush(slice);
-        } else if (mpMediator) {
-            // push the request into the queue
-            auto id = mpMediator->mnId;
-            MediatorScheduler::GetInstance().EnqueueRequest(id, req.body);
-        }
-    } else if (req.path == "GetId") {
-        const int id = Map::ClaimId();
-
-        // initialize corresponding listener.
-//        dispatchService->send(id);
-    } else {
-        warn("unknown request: {}", req.path);
-    }
+//    Request req;
+//
+//    try {
+//        ORB_SLAM2::toObject<Request>(req, msg);
+//    } catch (std::exception &e) {
+//        error("parse request failed: {}", e.what());
+//        return;
+//    }
+//
+//    if (req.path == "DistributeMap") {
+//        // update map on the client
+//        if (mpSLAM) {
+//            MapSlice slice;
+//            MapUpdater::Deserialize(slice, req.body);
+//            mpSLAM->GetMap()->UpdateMap(slice);
+//        }
+//    } else if (req.path == "ReportState") {
+//        // update state on the server
+//        SystemState state;
+//
+//        ORB_SLAM2::toObject<SystemState>(state, req.body);
+//        mpMediator->SetState(state);
+//    } else if (req.path == "PushMap") {
+//        if (mpSLAM) {
+//            // update map on the client
+//            MapSlice slice;
+//            MapUpdater::Deserialize(slice, req.body);
+//            mpSLAM->GetMap()->GetMapit()->ReceivePush(slice);
+//        } else if (mpMediator) {
+//            // push the request into the queue
+//            auto id = mpMediator->mnId;
+//            MediatorScheduler::GetInstance().EnqueueRequest(id, req.body);
+//        }
+//    } else if (req.path == "GetId") {
+//        const int id = Map::ClaimId();
+//
+//        // initialize corresponding listener.
+////        dispatchService->send(id);
+//    } else {
+//        warn("unknown request: {}", req.path);
+//    }
 }
 
 } // namespace ORB_SLAM2

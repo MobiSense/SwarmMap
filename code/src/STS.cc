@@ -11,8 +11,8 @@ namespace ORB_SLAM2 {
 void STS::ReportState() {
 }
 
-void STS::SetConnectionService(ConnectionService *connectionService) {
-    this->mpConnectionService = connectionService;
-}
+//void STS::SetConnectionService(ConnectionService *connectionService) {
+//    this->mpConnectionService = connectionService;
+//}
 
 }

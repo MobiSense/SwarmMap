@@ -129,8 +129,12 @@ cuda_add_library(${BASE_LIBRARY} SHARED
         ${SRC_DIRECTORY}/src/MediatorScheduler.cc
         ${SRC_DIRECTORY}/src/Mapit.cc
         ${SRC_DIRECTORY}/src/STS.cc
+#        ${SRC_DIRECTORY}/src/Network/ClientService.cc
+        ${SRC_DIRECTORY}/src/ClientService.cc
+        ${SRC_DIRECTORY}/src/ServerService.cc
+        #        ${SRC_DIRECTORY}/src/Network/ServerService.cc
         ${SRC_DIRECTORY}/src/Network/MapElementUpdate.cc
-        ${SRC_DIRECTORY}/src/Network/ConnectionService.cc
+#        ${SRC_DIRECTORY}/src/Network/ConnectionService.cc
         ${SRC_DIRECTORY}/src/Network/WebSocket.cc
         )
 
