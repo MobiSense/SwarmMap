@@ -39,7 +39,7 @@
 #include "popl.hpp"
 #include <BoostArchiver.h>
 #include <MapUpdater.h>
-#include <ClientMediator.h>
+#include <AgentMediator.h>
 #include <Timer.h>
 #include <MapManager.h>
 #include <Converter.h>
@@ -57,12 +57,12 @@ using namespace std;
 using namespace ORB_SLAM2;
 using namespace popl;
 
-ORB_SLAM2::ClientMediator *globalMediator = nullptr;
+ORB_SLAM2::AgentMediator *globalMediator = nullptr;
 map<unsigned long, size_t> emptyCountMap;
 
 std::atomic_bool b;
 
-void GetTrackingInfo(ORB_SLAM2::System *SLAM, ORB_SLAM2::ClientMediator *mediator) {
+void GetTrackingInfo(ORB_SLAM2::System *SLAM, ORB_SLAM2::AgentMediator *mediator) {
     auto state = SLAM->GetSystemState();
 
     // TODO(halcao): network
@@ -74,7 +74,7 @@ void GetTrackingInfo(ORB_SLAM2::System *SLAM, ORB_SLAM2::ClientMediator *mediato
     SLAM->GetMap()->GetConnectionService()->ReportState(state);
 }
 
-void UploadMap(ORB_SLAM2::System *SLAM, ORB_SLAM2::ClientMediator *mediator) {
+void UploadMap(ORB_SLAM2::System *SLAM, ORB_SLAM2::AgentMediator *mediator) {
     info("receive map called");
     if (!SLAM || !SLAM->GetMap() || !mediator || !mediator->GetMap()) return;
     // simulate sending and receiving process
@@ -118,7 +118,7 @@ void track(ORB_SLAM2::System *SLAM, const std::string imageName, double tframe) 
     SLAM->TrackMonocular(im, tframe);
 }
 
-void Run(vector<System *> SLAMs, vector<ClientMediator *> mediators, size_t nClient) {
+void Run(vector<System *> SLAMs, vector<AgentMediator *> mediators, size_t nClient) {
     // b: whether to stop the program
     b.store(true);
     size_t n = 0;
@@ -162,7 +162,7 @@ void Run(vector<System *> SLAMs, vector<ClientMediator *> mediators, size_t nCli
     }
 }
 
-void setupNetwork(vector<System *> SLAMs, vector<ClientMediator *> mediators) {
+void setupNetwork(vector<System *> SLAMs, vector<AgentMediator *> mediators) {
     for (size_t i = 0; i < SLAMs.size(); i++) {
         SLAMs[i]->GetMap()->TryConnect(SLAMs[i]);
         mediators[i]->GetMap()->TryConnect(mediators[i]);
@@ -252,7 +252,7 @@ int main(int argc, char **argv) {
     const size_t nClient = client_number_option->value();
 
     vector<ORB_SLAM2::System *> SLAMs;
-    vector<ORB_SLAM2::ClientMediator *> mediators;
+    vector<ORB_SLAM2::AgentMediator *> mediators;
 
     if (nClient < nDataset) {
 //        error("client number should not be less than dataset number");
@@ -261,16 +261,16 @@ int main(int argc, char **argv) {
         nDataset = nClient;
     }
 
-    // initialize slam systems and server handler(ClientMediator)
+    // initialize slam systems and server handler(AgentMediator)
     for (size_t i = 0; i < nClient; ++i) {
         // KEY: the constructor will change argv[2] so that the gl and cv process can not be done
-        ClientMediator *mediator;
+        AgentMediator *mediator;
         if (nClient == 1) {
             // make this mediator global
-            mediator = new ORB_SLAM2::ClientMediator(settingsFile, pVoc, use_map_viewer, true);
+            mediator = new ORB_SLAM2::AgentMediator(settingsFile, pVoc, use_map_viewer, true);
             globalMediator = mediator;
         } else {
-            mediator = new ORB_SLAM2::ClientMediator(settingsFile, pVoc, use_map_viewer);
+            mediator = new ORB_SLAM2::AgentMediator(settingsFile, pVoc, use_map_viewer);
         }
         auto SLAM = new ORB_SLAM2::System(vocFile, settingsFile, ORB_SLAM2::System::MONOCULAR, use_map_viewer);
         mediators.push_back(mediator);
@@ -291,9 +291,9 @@ int main(int argc, char **argv) {
         auto pVoc2 = new ORBVocabulary();
         pVoc2->loadFromBinaryFile(vocFile);
 
-        globalMediator = new ORB_SLAM2::ClientMediator(settingsFile, pVoc2, use_map_viewer, true);
+        globalMediator = new ORB_SLAM2::AgentMediator(settingsFile, pVoc2, use_map_viewer, true);
     } else if (nClient <= 0) {
-        error("ClientMediator number should be positive");
+        error("AgentMediator number should be positive");
         return 2;
     }
 

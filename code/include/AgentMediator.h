@@ -2,8 +2,8 @@
 // Created by Halcao on 2020/5/14.
 //
 
-#ifndef EDGE_SLAM_CLIENTMEDIATOR_H
-#define EDGE_SLAM_CLIENTMEDIATOR_H
+#ifndef EDGE_SLAM_AGENTMEDIATOR_H
+#define EDGE_SLAM_AGENTMEDIATOR_H
 
 #include <string>
 #include <thread>
@@ -27,13 +27,13 @@ class LoopClosing;
 class KeyFrameDatabase;
 enum TrackingState: int;
 
-class ClientMediator {
+class AgentMediator {
 public:
 
     typedef pair<set<KeyFrame *>, int> ConsistentGroup;
 
     // Initialize the SLAM system. It launches the Local Mapping, Loop Closing and Viewer threads.
-    ClientMediator(const string &strSettingsFile, ORBVocabulary *pVoc, const bool bUseViewer = true, const bool isGlobal_ = false);
+    AgentMediator(const string &strSettingsFile, ORBVocabulary *pVoc, const bool bUseViewer = true, const bool isGlobal_ = false);
 
     // All threads will be requested to finish.
     // It waits until all threads have finished.
@@ -41,7 +41,7 @@ public:
     void Shutdown();
 
     void SaveMap(const string &filename);
-    void CheckOverlapCandidates(const ClientMediator *other);
+    void CheckOverlapCandidates(const AgentMediator *other);
     inline Map *GetMap() {
         return mpMap;
     }
@@ -116,4 +116,4 @@ private:
 };
 };
 
-#endif //EDGE_SLAM_CLIENTMEDIATOR_H
+#endif //EDGE_SLAM_AGENTMEDIATOR_H

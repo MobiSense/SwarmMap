@@ -8,7 +8,7 @@
 #include "Optimizer.h"
 #include "LoopClosing.h"
 #include "KeyFrameDatabase.h"
-#include "ClientMediator.h"
+#include "AgentMediator.h"
 #include "MapUpdater.h"
 #include "BoostArchiver.h"
 #include "ORBmatcher.h"
@@ -26,12 +26,12 @@
 #include <utility>
 
 namespace ORB_SLAM2 {
-id_t ClientMediator::nNextId = 0;
-unordered_map<id_t, KeyFrameDatabase *> ClientMediator::databaseMap;
+id_t AgentMediator::nNextId = 0;
+unordered_map<id_t, KeyFrameDatabase *> AgentMediator::databaseMap;
 
 
-ClientMediator::ClientMediator(const string &strSettingsFile, ORBVocabulary *pVoc, const bool bUseViewer,
-                               const bool isGlobal_) : mbGlobal(isGlobal_) {
+AgentMediator::AgentMediator(const string &strSettingsFile, ORBVocabulary *pVoc, const bool bUseViewer,
+                             const bool isGlobal_) : mbGlobal(isGlobal_) {
     mpKeyFrameDatabase = new KeyFrameDatabase(*pVoc);
 
     // the map is in the mediator
@@ -63,7 +63,7 @@ ClientMediator::ClientMediator(const string &strSettingsFile, ORBVocabulary *pVo
     MediatorScheduler::GetInstance().RegisterMediator(this);
 }
 
-void ClientMediator::Shutdown() {
+void AgentMediator::Shutdown() {
     debug("wait pLoopCloser to finish");
     mpLoopCloser->RequestFinish();
     // Wait until all thread have effectively stopped
@@ -84,7 +84,7 @@ void ClientMediator::Shutdown() {
     }
 }
 
-void ClientMediator::SaveMap(const string &filename) {
+void AgentMediator::SaveMap(const string &filename) {
     std::ofstream out(filename, std::ios_base::binary);
     if (!out) {
         error("Cannot Write to Mapfile: {}", filename);
@@ -113,7 +113,7 @@ void ClientMediator::SaveMap(const string &filename) {
     out.close();
 }
 
-void ClientMediator::MergeKeyFrameDatabases() {
+void AgentMediator::MergeKeyFrameDatabases() {
     // merge the other kfdb
     mpKeyFrameDatabase->mvInvertedFileId.clear();
     for (auto &pair: databaseMap) {
@@ -136,7 +136,7 @@ void ClientMediator::MergeKeyFrameDatabases() {
     }
 }
 
-void ClientMediator::CheckOverlapCandidates(const ClientMediator *other) {
+void AgentMediator::CheckOverlapCandidates(const AgentMediator *other) {
     auto vpKFs = other->mpMap->allKFs;
     auto vpMPs = other->mpMap->allMPs;
     // init variables
@@ -176,7 +176,7 @@ void ClientMediator::CheckOverlapCandidates(const ClientMediator *other) {
         auto minScore = kf->GetMinCovisibilityScore();
 
         set<KeyFrame *> candidates;
-        for (auto &pair: ClientMediator::databaseMap) {
+        for (auto &pair: AgentMediator::databaseMap) {
             if (pair.first == mnId) continue;
             auto kfDB = pair.second;
 
@@ -192,7 +192,7 @@ void ClientMediator::CheckOverlapCandidates(const ClientMediator *other) {
         debug("Global check map {} kf {} candidates count: {}", kf->mpMap->mnId, kf->mnId, candidates.size());
 
         if (DetectLoop(kf, minScore, candidates)) {
-            ClientMediator::GetSim3(kf, mvpEnoughConsistentCandidatesMap[kf->mpMap->mnId]);
+            AgentMediator::GetSim3(kf, mvpEnoughConsistentCandidatesMap[kf->mpMap->mnId]);
         }
 //            mpKeyFrameDatabase->add(kf);
     }
@@ -200,7 +200,7 @@ void ClientMediator::CheckOverlapCandidates(const ClientMediator *other) {
     lastCheckedKFIds[other->mpMap->mnId] = lastCheckedKFId;
 }
 
-void ClientMediator::GetSim3(KeyFrame *pCurrentKF, vector<KeyFrame *> candidates) {
+void AgentMediator::GetSim3(KeyFrame *pCurrentKF, vector<KeyFrame *> candidates) {
     const auto nInitialCandidates = candidates.size();
     const bool mbFixScale = false;
 
@@ -380,7 +380,7 @@ void ClientMediator::GetSim3(KeyFrame *pCurrentKF, vector<KeyFrame *> candidates
     if (!bMatch) return;
 }
 
-bool ClientMediator::DetectLoop(KeyFrame *mpCurrentKF, float minScore, const set<KeyFrame *> &vpCandidateKFs) {
+bool AgentMediator::DetectLoop(KeyFrame *mpCurrentKF, float minScore, const set<KeyFrame *> &vpCandidateKFs) {
     int mnCovisibilityConsistencyTh = 3;
 
     // Compute reference BoW similarity score
@@ -454,7 +454,7 @@ bool ClientMediator::DetectLoop(KeyFrame *mpCurrentKF, float minScore, const set
     return true;
 }
 
-void ClientMediator::RunGlobalBundleAdjustment(Map *pMap1, Map *pMap2) {
+void AgentMediator::RunGlobalBundleAdjustment(Map *pMap1, Map *pMap2) {
     bool bStopGBA = false;
     unsigned long nLoopKF = 0;
 
@@ -473,8 +473,8 @@ void ClientMediator::RunGlobalBundleAdjustment(Map *pMap1, Map *pMap2) {
 }
 
 void
-ClientMediator::UmeyamaForSim3Transform(const Eigen::Matrix3Xd& srcPoses, Eigen::Matrix3Xd destPoses, cv::Mat &mR, cv::Mat &mt,
-                                        double &ds) {
+AgentMediator::UmeyamaForSim3Transform(const Eigen::Matrix3Xd& srcPoses, Eigen::Matrix3Xd destPoses, cv::Mat &mR, cv::Mat &mt,
+                                       double &ds) {
 
     mR = cv::Mat::eye(3, 3, CV_32F);
     mt = cv::Mat::zeros(3, 1, CV_32F);
@@ -500,27 +500,27 @@ ClientMediator::UmeyamaForSim3Transform(const Eigen::Matrix3Xd& srcPoses, Eigen:
 
 }
 
-void ClientMediator::SetCurrentLocation(const cv::Mat &currentLocation) {
+void AgentMediator::SetCurrentLocation(const cv::Mat &currentLocation) {
     if (currentLocation.empty()) return;
 
     auto globalLoc = currentLocation * Converter::toCvMat(mpMap->mTwl.inverse()) * mpMap->mTwl.scale();
     mpMapDrawer->SetCurrentCameraPose(globalLoc);
 }
 
-SystemState ClientMediator::GetState() const {
+SystemState AgentMediator::GetState() const {
     return mState;
 }
 
-void ClientMediator::SetState(SystemState state) {
+void AgentMediator::SetState(SystemState state) {
     if (!mState.location.empty()) {
         this->mLastState = mState;
     }
-    ClientMediator::mState = std::move(state);
+    AgentMediator::mState = std::move(state);
     this->SetCurrentLocation(mState.location);
 }
 
 // static function
-void ClientMediator::SegmentMaps(KeyFrame* pKF, KeyFrame *pRefKF) {
+void AgentMediator::SegmentMaps(KeyFrame* pKF, KeyFrame *pRefKF) {
     if (pKF->mpMap->mnId == pRefKF->mpMap->mnId) {
         // the two KeyFrames comes from the same map
         if (pKF->mnId > pRefKF->mnId) {
@@ -540,7 +540,7 @@ void ClientMediator::SegmentMaps(KeyFrame* pKF, KeyFrame *pRefKF) {
     }
 }
 
-void ClientMediator::SegmentMapByKeyFrame(const KeyFrame *pKF) {
+void AgentMediator::SegmentMapByKeyFrame(const KeyFrame *pKF) {
     // make a slice from lastKFid to pKF id
 
     if (pKF->mnId < this->mnLastKFId) return;

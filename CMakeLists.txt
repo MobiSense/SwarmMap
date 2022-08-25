@@ -109,12 +109,11 @@ cuda_add_library(${BASE_LIBRARY} SHARED
         ${SRC_DIRECTORY}/src/PnPsolver.cc
         ${SRC_DIRECTORY}/src/Frame.cc
         ${SRC_DIRECTORY}/src/KeyFrameDatabase.cc
-        ${SRC_DIRECTORY}/src/MapElementUpdate.cc
         ${SRC_DIRECTORY}/src/Sim3Solver.cc
         ${SRC_DIRECTORY}/src/Initializer.cc
         ${SRC_DIRECTORY}/src/Viewer.cc
         ${SRC_DIRECTORY}/src/MapUpdater.cc
-        ${SRC_DIRECTORY}/src/ClientMediator.cc
+        ${SRC_DIRECTORY}/src/AgentMediator.cc
         ${SRC_DIRECTORY}/src/DataSetUtil.cc
         ${SRC_DIRECTORY}/src/Timer.cc
         ${SRC_DIRECTORY}/src/MapManager.cc
@@ -130,8 +129,9 @@ cuda_add_library(${BASE_LIBRARY} SHARED
         ${SRC_DIRECTORY}/src/MediatorScheduler.cc
         ${SRC_DIRECTORY}/src/Mapit.cc
         ${SRC_DIRECTORY}/src/STS.cc
-        ${SRC_DIRECTORY}/src/ConnectionService.cc
-        ${SRC_DIRECTORY}/src/WebSocket.cc
+        ${SRC_DIRECTORY}/src/Network/MapElementUpdate.cc
+        ${SRC_DIRECTORY}/src/Network/ConnectionService.cc
+        ${SRC_DIRECTORY}/src/Network/WebSocket.cc
         )
 
 target_include_directories(${BASE_LIBRARY} PUBLIC

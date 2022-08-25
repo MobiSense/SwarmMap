@@ -3,7 +3,7 @@
 //
 
 #include "ConnectionService.h"
-#include "ClientMediator.h"
+#include "AgentMediator.h"
 #include "MapSlice.h"
 #include "System.h"
 #include "MapUpdater.h"
@@ -18,7 +18,7 @@ using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
 namespace websocket = boost::beast::websocket;  // from <boost/beast/websocket.hpp>
 using work_guard_type = boost::asio::executor_work_guard<boost::asio::io_context::executor_type>;
 
-ConnectionService::ConnectionService(ClientMediator *pMediator) {
+ConnectionService::ConnectionService(AgentMediator *pMediator) {
     // server side
 
     // first initialize the id dispatching service

@@ -3,7 +3,7 @@
 //
 
 #include <MediatorScheduler.h>
-#include <ClientMediator.h>
+#include <AgentMediator.h>
 #include <MapUpdater.h>
 #include <MapManager.h>
 #include <Converter.h>
@@ -45,7 +45,7 @@ MediatorScheduler::MediatorScheduler() {
     this->mptRunning = new std::thread(&MediatorScheduler::Run, this);
 }
 
-void MediatorScheduler::RegisterMediator(ClientMediator *mediator) {
+void MediatorScheduler::RegisterMediator(AgentMediator *mediator) {
     mediatorMap[mediator->mnId] = mediator;
 
     if (mediator->isGlobal()) {
@@ -152,7 +152,7 @@ bool MediatorScheduler::ShouldStop() {
     return mbShouldStop;
 }
 
-void MediatorScheduler::MapDistribute(ORB_SLAM2::ClientMediator *mediator) {
+void MediatorScheduler::MapDistribute(ORB_SLAM2::AgentMediator *mediator) {
     auto group = MapManager::GetGroup(mediator->GetMap());
     auto clientMapId = mediator->GetMap()->mnId;
     Map *pMap = nullptr;
@@ -242,7 +242,7 @@ MapPoint *MediatorScheduler::GetMapPoint(const unsigned long id) {
     return nullptr;
 }
 
-ClientMediator *MediatorScheduler::GetMediator(size_t id) {
+AgentMediator *MediatorScheduler::GetMediator(size_t id) {
     return mediatorMap[id];
 }
 }

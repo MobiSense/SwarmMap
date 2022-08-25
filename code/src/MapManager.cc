@@ -6,7 +6,7 @@
 #include <MapManager.h>
 #include <ORBmatcher.h>
 #include "Converter.h"
-#include "ClientMediator.h"
+#include "AgentMediator.h"
 #include "CLogger.h"
 
 namespace ORB_SLAM2 {
@@ -111,7 +111,7 @@ void MapManager::MergeMap(Map *pMap1, Map *pMap2, const g2o::Sim3 &T12) {
     }
 
 ////         TODO(halcao): run global BA
-//    ClientMediator::RunGlobalBundleAdjustment(pMap1, pMap2);
+//    AgentMediator::RunGlobalBundleAdjustment(pMap1, pMap2);
 
 }
 

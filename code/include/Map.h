@@ -27,7 +27,7 @@
 
 #include <mutex>
 #include "MapElementUpdate.h"
-#include "ClientMediator.h"
+#include "AgentMediator.h"
 //#include "System.h"
 #include <unordered_map>
 #include <Thirdparty/g2o/g2o/types/sim3.h>
@@ -47,7 +47,7 @@ class MapUpdater;
 class LoopClosing;
 class MapSlice;
 class Mapit;
-class ClientMediator;
+class AgentMediator;
 class ConnectionService;
 // TODO(halcao): remove this class
 class System;
@@ -149,7 +149,7 @@ public:
     void UpdateMap(const MapSlice &slice);
     Mapit* GetMapit() { return pMapit; };
     ConnectionService* GetConnectionService() { return pConnectionService; };
-    bool TryConnect(ClientMediator *pMediator);
+    bool TryConnect(AgentMediator *pMediator);
     bool TryConnect(const std::string &ip, int port);
     static unsigned long ClaimId();
 

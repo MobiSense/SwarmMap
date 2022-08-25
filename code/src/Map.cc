@@ -54,7 +54,7 @@ namespace ORB_SLAM2 {
         pMapit = new Mapit(this);
     }
 
-    bool Map::TryConnect(ClientMediator *pMediator) {
+    bool Map::TryConnect(AgentMediator *pMediator) {
         pConnectionService = new ConnectionService(pMediator);
     }
 

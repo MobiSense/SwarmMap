@@ -14,7 +14,7 @@
 
 namespace ORB_SLAM2 {
 
-class ClientMediator;
+class AgentMediator;
 class System;
 class KeyFrame;
 class MapPoint;
@@ -24,7 +24,7 @@ struct MediatorRequest {
     size_t src;
     size_t dst;
     MapSlice slice;
-    ClientMediator *mediator;
+    AgentMediator *mediator;
     double contribScore;
 
     bool operator <(const MediatorRequest &other) const;
@@ -47,8 +47,8 @@ public:
     MediatorScheduler(MediatorScheduler const&) = delete;
     void operator=(MediatorScheduler const&) = delete;
 
-    void RegisterMediator(ClientMediator *mediator);
-    ClientMediator *GetMediator(size_t id);
+    void RegisterMediator(AgentMediator *mediator);
+    AgentMediator *GetMediator(size_t id);
     void EnqueueRequest(unsigned long id, const string &message);
 
     KeyFrame *GetKeyFrame(unsigned long id);
@@ -56,14 +56,14 @@ public:
 
     void Run();
     void RequestStop();
-    static void MapDistribute(ClientMediator *mediator);
+    static void MapDistribute(AgentMediator *mediator);
 public:
-    ClientMediator *globalMediator = nullptr;
+    AgentMediator *globalMediator = nullptr;
     std::function<System *(unsigned long)> getSLAMSystem;
 private:
     MediatorScheduler();
     // TODO(halcao): make it static
-    unordered_map<unsigned long, ClientMediator *> mediatorMap;
+    unordered_map<unsigned long, AgentMediator *> mediatorMap;
     unordered_map<unsigned long, thread *> threadPool;
     priority_queue<MediatorRequest *, std::vector<MediatorRequest *>, MediatorRequestComparator> queue;
     bool ShouldStop();

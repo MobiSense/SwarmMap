@@ -529,7 +529,7 @@ namespace ORB_SLAM2 {
                                           LoopConnections, mbFixScale);
 
         // MBP: segment the map
-        ClientMediator::SegmentMaps(mpMatchedKF, mpCurrentKF);
+        AgentMediator::SegmentMaps(mpMatchedKF, mpCurrentKF);
 
         mpMap->InformNewBigChange();
 

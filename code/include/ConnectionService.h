@@ -14,14 +14,14 @@
 
 namespace ORB_SLAM2 {
 
-class ClientMediator;
+class AgentMediator;
 class System;
 using std::vector;
 
 class ConnectionService {
 public:
 //ConnectionService();
-    explicit ConnectionService(ClientMediator *pMediator);
+    explicit ConnectionService(AgentMediator *pMediator);
 
     explicit ConnectionService(System *pSLAM);
 
@@ -42,7 +42,7 @@ private:
     // content to be sent
     std::queue<std::string> contentQueue;
     System *mpSLAM{};
-    ClientMediator *mpMediator{};
+    AgentMediator *mpMediator{};
     bool mbConnected = false;
     std::mutex mContentMutex;
     std::thread *mThread;
