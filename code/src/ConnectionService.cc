@@ -20,6 +20,20 @@ using work_guard_type = boost::asio::executor_work_guard<boost::asio::io_context
 
 ConnectionService::ConnectionService(ClientMediator *pMediator) {
     // server side
+
+    // first initialize the id dispatching service
+    if (!dispatchService.get()) {
+        auto const address = boost::asio::ip::make_address("0.0.0.0");
+        const int port = 10080;
+        boost::asio::io_context ioc{1};
+
+        // Create and launch a listening port
+        this->dispatchService = std::make_shared<WS::Server::listener>(ioc,
+                                                                     tcp::endpoint{address, port},
+                                                                     std::bind(&ConnectionService::OnRequest, this, std::placeholders::_1));
+        this->dispatchService->run();
+    }
+
     this->mpMediator = pMediator;
 
     const auto id = (unsigned int)(mpMediator->mnId);
@@ -173,6 +187,11 @@ void ConnectionService::OnRequest(const std::string &msg) {
             auto id = mpMediator->mnId;
             MediatorScheduler::GetInstance().EnqueueRequest(id, req.body);
         }
+    } else if (req.path == "GetId") {
+        const int id = Map::ClaimId();
+
+        // initialize corresponding listener.
+//        dispatchService->send(id);
     } else {
         warn("unknown request: {}", req.path);
     }

@@ -504,4 +504,10 @@ bool Map::TryConnect(const std::string &ip, int port) {
         }
     }
 
+unsigned long Map::ClaimId() {
+    unsigned long newId = nNextId++;
+
+    return newId;
+}
+
 } //namespace ORB_SLAM

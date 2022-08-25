@@ -151,6 +151,7 @@ public:
     ConnectionService* GetConnectionService() { return pConnectionService; };
     bool TryConnect(ClientMediator *pMediator);
     bool TryConnect(const std::string &ip, int port);
+    static unsigned long ClaimId();
 
     bool TryConnect(ORB_SLAM2::System *pSLAM);
 };

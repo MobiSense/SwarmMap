@@ -47,6 +47,9 @@ private:
     std::mutex mContentMutex;
     std::thread *mThread;
 
+    // Server dispatch id and corresponding service port
+    std::shared_ptr<WS::Server::listener> dispatchService;
+
     // Server connection service
     std::shared_ptr<WS::Server::listener> serverService;
     // Client connection service
