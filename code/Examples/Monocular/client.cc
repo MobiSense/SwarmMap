@@ -48,7 +48,8 @@
 #include <MediatorScheduler.h>
 #include <MapSlice.h>
 #include <SystemState.h>
-#include "ConnectionService.h"
+#include <ClientService.h>
+//#include "ConnectionService.h"
 #include "CLogger.h"
 #include "Mapit.h"
 #include "DataSetUtil.h"
@@ -71,7 +72,7 @@ void GetTrackingInfo(ORB_SLAM2::System *SLAM, ORB_SLAM2::AgentMediator *mediator
         emptyCountMap[mediator->mnId] = 0;
     }
 
-    SLAM->GetMap()->GetConnectionService()->ReportState(state);
+    SLAM->GetMap()->GetClientService()->ReportState(state);
 }
 
 void UploadMap(ORB_SLAM2::System *SLAM, ORB_SLAM2::AgentMediator *mediator) {
@@ -85,19 +86,14 @@ void UploadMap(ORB_SLAM2::System *SLAM, ORB_SLAM2::AgentMediator *mediator) {
     string result;
     SLAM->GetMap()->GetMapit()->Push(result);
 
-    // TODO(halcao): network
-    // text serialization min size equals 56
+    // prevent endless sending
     if (result.size() <= 60) {
         emptyCountMap[mediator->mnId] += 1;
     } else {
         emptyCountMap[mediator->mnId] = 0;
     }
 
-    // TODO(halcao): network connection
-
-    // client id
-    auto id = SLAM->GetMap()->mnId - 1;
-    MediatorScheduler::GetInstance().EnqueueRequest(id, result);
+    SLAM->GetMap()->GetClientService()->PushMap(result);
 }
 
 string GetCurrentTime() {
@@ -124,6 +120,7 @@ void track(ORB_SLAM2::System *SLAM, const std::string imageName, double tframe) 
 }
 
 void Run(vector<System *> SLAMs, vector<AgentMediator *> mediators, size_t nClient) {
+    // b: whether to stop the program
     b.store(true);
     size_t n = 0;
     while (b.load()) {
@@ -168,26 +165,27 @@ void Run(vector<System *> SLAMs, vector<AgentMediator *> mediators, size_t nClie
 
 void setupNetwork(vector<System *> SLAMs, vector<AgentMediator *> mediators) {
     for (size_t i = 0; i < SLAMs.size(); i++) {
-        SLAMs[i]->GetMap()->TryConnect(mediators[i]);
-        mediators[i]->GetMap()->TryConnect(SLAMs[i]);
+        SLAMs[i]->GetMap()->TryConnect(SLAMs[i]);
+        mediators[i]->GetMap()->TryConnect(mediators[i]);
     }
 }
 
 int main(int argc, char **argv) {
-    OptionParser op("edgeSLAM - mono euroc");
-    auto help_option   = op.add<Switch>("h", "help", "Usage: ./map_conveyance path_to_vocabulary path_to_settings path_to_image_folder path_to_times_file/tum debug_level [use_viewer] [use_map_viewer]");
+    OptionParser op("SwarmMap - Scaling Up Real-time Collaborative Visual SLAM at the Edge");
+    auto help_option   = op.add<Switch>("h", "help", "print this message");
     auto voc_option = op.add<Value<std::string>>("v", "voc", "path to vocabulary");
     // multiple dataset
     auto dataset_option = op.add<Value<std::string>>("d", "dataset", "path to dataset config file");
     auto log_level_option  = op.add<Value<std::string>>("l", "log", "log level: error/warn/info/debug", "debug");
-    auto viewer_option  = op.add<Value<bool>>("u", "viewer", "use viewer", true);
+    auto viewer_option  = op.add<Value<bool>>("u", "viewer", "use frame viewer", true);
     auto map_viewer_option  = op.add<Value<bool>>("m", "mapviewer", "use map viewer", true);
     auto client_number_option  = op.add<Value<int>>("c", "client", "client number", 2);
     op.parse(argc, argv);
 
     // print auto-generated help message
-    if (help_option->count() > 0) {
+    if (help_option->is_set() || argc == 1) {
         cout << op << "\n";
+        return 0;
     }
 
     if (!dataset_option->is_set()) {
@@ -380,7 +378,7 @@ int main(int argc, char **argv) {
 
     if (use_viewer || use_map_viewer) {
         info("press any key to stop");
-        getchar();
+//        getchar();
     }
 
     // Stop all threads
@@ -412,21 +410,21 @@ int main(int argc, char **argv) {
 //    info("median tracking time: {}", vTimesTrack[trackSize / 2]);
 //    info("mean tracking time: {}", totaltime / trackSize);
 
-    LandmarkScoring::Save("result" + GetCurrentTime());
+//    LandmarkScoring::Save("result" + GetCurrentTime());
 
     // Save camera trajectory
     for (size_t i = 0; i < nClient; ++i) {
         auto SLAM = SLAMs[i];
         auto mediator = mediators[i];
-        debug("original map {} keyframe count: {}", SLAM->GetMap()->mnId, SLAM->GetMap()->KeyFramesInMap());
-        debug("original map {} mappoint count: {}", SLAM->GetMap()->mnId, SLAM->GetMap()->MapPointsInMap());
+        debug("client map {} keyframe count: {}", SLAM->GetMap()->mnId, SLAM->GetMap()->KeyFramesInMap());
+        debug("client map {} mappoint count: {}", SLAM->GetMap()->mnId, SLAM->GetMap()->MapPointsInMap());
         SLAM->SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory-" + GetCurrentTime() + "-" + std::to_string(SLAM->GetMap()->mnId) + ".txt");
-        SLAM->SaveMap("map-old-" + std::to_string(SLAM->GetMap()->mnId) + ".bin");
+        SLAM->SaveMap("map-client-" + std::to_string(SLAM->GetMap()->mnId) + ".bin");
 
-        debug("new map {} keyframe count: {}", mediator->GetMap()->mnId, mediator->GetMap()->KeyFramesInMap());
-        debug("new map {} mappoint count: {}", mediator->GetMap()->mnId, mediator->GetMap()->MapPointsInMap());
+        debug("server map {} keyframe count: {}", mediator->GetMap()->mnId, mediator->GetMap()->KeyFramesInMap());
+        debug("server map {} mappoint count: {}", mediator->GetMap()->mnId, mediator->GetMap()->MapPointsInMap());
 
-        mediator->SaveMap("map-new-" + std::to_string(mediator->GetMap()->mnId) + ".bin");
+        mediator->SaveMap("map-server-" + std::to_string(mediator->GetMap()->mnId) + ".bin");
 
 //        delete SLAM;
 //        delete mediator;
