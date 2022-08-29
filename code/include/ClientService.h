@@ -28,6 +28,7 @@ public:
     // client sends to server
     void PushMap(const std::string &content);
 
+    std::tuple<unsigned long, unsigned int> Register(const std::string &host, unsigned int port);
 protected:
     // content to be sent
     std::queue<std::string> contentQueue;

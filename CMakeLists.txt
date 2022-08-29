@@ -162,3 +162,11 @@ target_link_libraries(${BASE_LIBRARY}
 add_executable(swarm_map
         ${SRC_DIRECTORY}/Examples/Monocular/swarm_map.cc)
 target_link_libraries(swarm_map ${BASE_LIBRARY})
+
+add_executable(swarm_client
+        ${SRC_DIRECTORY}/Examples/Monocular/client.cc)
+target_link_libraries(swarm_client ${BASE_LIBRARY})
+
+add_executable(swarm_server
+        ${SRC_DIRECTORY}/Examples/Monocular/server.cc)
+target_link_libraries(swarm_server ${BASE_LIBRARY})

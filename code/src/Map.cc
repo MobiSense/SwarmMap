@@ -510,4 +510,18 @@ unsigned long Map::ClaimId() {
     return newId;
 }
 
+void Map::SetId(unsigned long id) {
+    const auto prevId = mnId;
+
+    nNextId = id;
+    mnId = nNextId++;
+
+    mnIdBase = mnId * MAP_BASE;
+
+    allMaps[prevId] = nullptr;
+    KeyFrame::nNextIds[prevId] = 0;
+
+    allMaps[mnId] = this;
+}
+
 } //namespace ORB_SLAM

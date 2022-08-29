@@ -268,23 +268,15 @@ int main(int argc, char **argv) {
         AgentMediator *mediator;
         if (nClient == 1) {
             // make this mediator global
-            mediator = new ORB_SLAM2::AgentMediator(settingsFile, pVoc, use_map_viewer, true);
+            mediator = new ORB_SLAM2::AgentMediator(settingsFile, pVoc, true, use_viewer, use_map_viewer);
             globalMediator = mediator;
         } else {
-            mediator = new ORB_SLAM2::AgentMediator(settingsFile, pVoc, use_map_viewer);
+            mediator = new ORB_SLAM2::AgentMediator(settingsFile, pVoc, false, use_viewer, use_map_viewer);
         }
         auto SLAM = new ORB_SLAM2::System(vocFile, settingsFile, ORB_SLAM2::System::MONOCULAR, use_map_viewer);
         mediators.push_back(mediator);
         SLAMs.push_back(SLAM);
     }
-
-    MediatorScheduler::GetInstance().getSLAMSystem = [&SLAMs](unsigned long i){
-        if (i < SLAMs.size()) {
-            return SLAMs[i];
-        } else {
-            return static_cast<System *>(nullptr);
-        }
-    };
 
     setupNetwork(SLAMs, mediators);
 
@@ -292,7 +284,7 @@ int main(int argc, char **argv) {
         auto pVoc2 = new ORBVocabulary();
         pVoc2->loadFromBinaryFile(vocFile);
 
-        globalMediator = new ORB_SLAM2::AgentMediator(settingsFile, pVoc2, use_map_viewer, true);
+        globalMediator = new ORB_SLAM2::AgentMediator(settingsFile, pVoc2, true, use_viewer, use_map_viewer);
     } else if (nClient <= 0) {
         error("AgentMediator number should be positive");
         return 2;

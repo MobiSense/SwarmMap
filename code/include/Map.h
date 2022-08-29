@@ -52,7 +52,6 @@ class MapSlice;
 class Mapit;
 class AgentMediator;
 //class ConnectionService;
-// TODO(halcao): remove this class
 class System;
 class ConnectionService;
 
@@ -158,7 +157,10 @@ public:
 
     bool TryConnect(AgentMediator *pMediator);
     bool TryConnect(const std::string &ip, int port);
+
+    // client get new id
     static unsigned long ClaimId();
+    void SetId(unsigned long id);
 
     bool TryConnect(ORB_SLAM2::System *pSLAM);
 };

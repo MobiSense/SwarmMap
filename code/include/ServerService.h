@@ -27,7 +27,9 @@ public:
 
     // server sends to client
     void DistributeMap(const std::string &content);
-//    bool isConnected() { return mbConnected; }
+
+    unsigned int GetPort();
+    bool isConnected() { return mbConnected; }
 protected:
     // content to be sent
     std::queue<std::string> contentQueue;
@@ -36,8 +38,6 @@ protected:
     bool mbConnected = false;
     AgentMediator *mpMediator{};
 
-    // Server dispatching service
-    std::shared_ptr<WS::Server::listener> dispatchService;
     std::shared_ptr<WS::Server::listener> service;
 
     void Bind(unsigned int port);

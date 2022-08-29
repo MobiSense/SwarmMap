@@ -82,7 +82,7 @@ public:
     void
     on_resolve(
             beast::error_code ec,
-            tcp::resolver::results_type results) {
+            const tcp::resolver::results_type& results) {
         if (ec)
             return fail(ec, "resolve");
 
@@ -245,7 +245,7 @@ class shared_state {
     std::unordered_set<session *> sessions;
 
 public:
-    explicit shared_state(std::string doc_root) { (void)doc_root; };
+    explicit shared_state(const std::string& doc_root) { (void)doc_root; };
 
     const std::string &getDocRoot() const noexcept {
         return doc_root;
@@ -262,7 +262,7 @@ public:
     };
 
     // broadcast a message to all websocket client sessions
-    void send(const std::string& message);
+    void send(const std::shared_ptr<const std::string>& ss);
 };
 
 // Echoes back all received WebSocket messages
@@ -410,7 +410,7 @@ class listener: public std::enable_shared_from_this<listener> {
 public:
     listener(
             net::io_context &ioc,
-            tcp::endpoint endpoint,
+            const tcp::endpoint& endpoint,
             std::function<void(const std::string&)> on_message)
             : ioc_(ioc), acceptor_(ioc), state(std::make_shared<shared_state>("/")), on_message(std::move(on_message)) {
         beast::error_code ec;
@@ -445,8 +445,13 @@ public:
         }
     }
 
-    void send(const std::string& message) {
-        state->send(message);
+    unsigned int get_port() {
+        return acceptor_.local_endpoint().port();
+    }
+
+//    void send(const std::string& message) {
+    void send(const std::shared_ptr<const std::string>& ss) {
+        state->send(ss);
     }
 
     // Start accepting incoming connections

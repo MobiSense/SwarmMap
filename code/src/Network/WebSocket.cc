@@ -41,7 +41,7 @@ namespace Client {
 namespace Server {
 
 // broadcast a message to all websocket client sessions
-void shared_state::send(const std::string &message) {
+void shared_state::send(const std::shared_ptr<const std::string>& ss) {
     // make a local list of all the weak pointers representing the sessions so that we an do the
     // actual sending without holding the mutex
     auto v = std::vector<session *>();
@@ -52,8 +52,6 @@ void shared_state::send(const std::string &message) {
             v.emplace_back(p);
         }
     }
-
-    const auto ss = std::make_shared<const std::string>(message);
 
     // for each session in our local list, try to acquire a strong pointer. If successful,
     // then send the message on that session

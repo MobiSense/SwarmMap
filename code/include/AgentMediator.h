@@ -34,7 +34,7 @@ public:
     typedef pair<set<KeyFrame *>, int> ConsistentGroup;
 
     // Initialize the SLAM system. It launches the Local Mapping, Loop Closing and Viewer threads.
-    AgentMediator(const string &strSettingsFile, ORBVocabulary *pVoc, const bool bUseViewer = true, const bool isGlobal_ = false);
+    AgentMediator(const string &strSettingsFile, ORBVocabulary *pVoc, const bool isGlobal_ = false, const bool bUseViewer = true, const bool bUseMapViewer = true);
 
     // All threads will be requested to finish.
     // It waits until all threads have finished.

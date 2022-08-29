@@ -34,7 +34,7 @@
 namespace ORB_SLAM2 {
 
     System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
-                   const bool bUseViewer)
+                   const bool bUseViewer, const bool bUseMapViewer)
             : mSensor(sensor), mbReset(false), mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false) {
         // Output welcome message
         cout << endl <<
@@ -98,7 +98,7 @@ namespace ORB_SLAM2 {
 
         //Initialize the Viewer thread and launch
         mpViewer = new Viewer(this, mpFrameDrawer, mpMapDrawer, mpTracker, strSettingsFile);
-        if (bUseViewer) {
+        if (bUseViewer || bUseMapViewer) {
             auto id = to_string(mpMap->mnId / 2);
             mpViewer->SetTitle("Map Viewer " + id, "Frame Viewer " + id);
             mptViewer = new thread(&Viewer::Run, mpViewer);
@@ -429,4 +429,7 @@ namespace ORB_SLAM2 {
         return state;
     }
 
+    void System::SetViewerTitle(const string &viewerTitle, const string &mapViewerTitle) {
+        mpViewer->SetTitle(viewerTitle, mapViewerTitle);
+    }
 } //namespace ORB_SLAM

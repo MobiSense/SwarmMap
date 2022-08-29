@@ -40,7 +40,8 @@ class System;
 class Viewer
 {
 public:
-    Viewer(System* pSystem, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Tracking *pTracking, const string &strSettingPath);
+    Viewer(System* pSystem, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Tracking *pTracking, const string &strSettingPath
+    , const bool bUseViewer = true, const bool bUseMapViewer=true);
 
     // Main thread function. Draw points, keyframes, the current camera pose and the last processed
     // frame. Drawing is refreshed according to the camera fps. We use Pangolin.
@@ -82,6 +83,9 @@ private:
     bool mbStopped;
     bool mbStopRequested;
     std::mutex mMutexStop;
+
+    bool mbUseViewer;
+    bool mbUseMapViewer;
 
     string windowTitle = "ORB-SLAM2: Map Viewer";
     string cvWindowName = "ORB-SLAM2: Current Frame";

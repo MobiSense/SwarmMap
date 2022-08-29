@@ -63,21 +63,45 @@ map<unsigned long, size_t> emptyCountMap;
 
 std::atomic_bool b;
 
-void GetTrackingInfo(ORB_SLAM2::System *SLAM, ORB_SLAM2::AgentMediator *mediator) {
+void RegisterRemote(ORB_SLAM2::System *SLAM, const string& host, const unsigned int &dispatchPort) {
+    SLAM->GetMap()->TryConnect(SLAM);
+
+    // get client id and port from the server
+    info("Registering remote client");
+    auto const tup = SLAM->GetMap()->GetClientService()->Register(host, dispatchPort);
+    unsigned long id = std::get<0>(tup);
+    unsigned int port = std::get<1>(tup);
+
+    if (id == -1 || port == -1) {
+        error("Failed to register remote client");
+        exit(2);
+    }
+    info("Registered client with id: " + to_string(id) + " and port: " + to_string(port));
+
+    // set id for the SLAM system
+    SLAM->GetMap()->SetId(id);
+    SLAM->SetViewerTitle("Map Viewer " + id, "Frame Viewer " + id);
+
+    info("Connecting to the data channel");
+    // connect to data channel
+    SLAM->GetMap()->GetClientService()->Connect(host, port);
+
+    info("Connected to the data channel");
+}
+
+void UploadTrackingInfo(ORB_SLAM2::System *SLAM) {
     auto state = SLAM->GetSystemState();
 
-    // TODO(halcao): network
-
     if (!state.bStable) {
-        emptyCountMap[mediator->mnId] = 0;
+        emptyCountMap[SLAM->GetMap()->mnId] = 0;
     }
 
     SLAM->GetMap()->GetClientService()->ReportState(state);
 }
 
-void UploadMap(ORB_SLAM2::System *SLAM, ORB_SLAM2::AgentMediator *mediator) {
+void UploadMap(ORB_SLAM2::System *SLAM) {
     info("receive map called");
-    if (!SLAM || !SLAM->GetMap() || !mediator || !mediator->GetMap()) return;
+    if (!SLAM || !SLAM->GetMap()) return;
     // simulate sending and receiving process
 
     FuncTimer();
@@ -86,11 +110,19 @@ void UploadMap(ORB_SLAM2::System *SLAM, ORB_SLAM2::AgentMediator *mediator) {
     string result;
     SLAM->GetMap()->GetMapit()->Push(result);
 
+    const auto contentEmpty = result.size() <= 60;
     // prevent endless sending
-    if (result.size() <= 60) {
-        emptyCountMap[mediator->mnId] += 1;
+    if (contentEmpty) {
+        emptyCountMap[SLAM->GetMap()->mnId] += 1;
     } else {
-        emptyCountMap[mediator->mnId] = 0;
+        emptyCountMap[SLAM->GetMap()->mnId] = 0;
+    }
+
+    // check empty content count
+    if (emptyCountMap[SLAM->GetMap()->mnId] > 5) {
+        // stop running
+        b.store(false);
+        return;
     }
 
     SLAM->GetMap()->GetClientService()->PushMap(result);
@@ -119,59 +151,28 @@ void track(ORB_SLAM2::System *SLAM, const std::string imageName, double tframe) 
     SLAM->TrackMonocular(im, tframe);
 }
 
-void Run(vector<System *> SLAMs, vector<AgentMediator *> mediators, size_t nClient) {
+void Run(System * SLAM) {
     // b: whether to stop the program
     b.store(true);
     size_t n = 0;
     while (b.load()) {
+        // sleep 500 ms
         std::this_thread::sleep_for(chrono::milliseconds(500));
         n += 1;
-        for (size_t i = 0; i < nClient; i++) {
-            GetTrackingInfo(SLAMs[i], mediators[i]);
-        }
+
+        // every 500ms, upload tracking info
+        UploadTrackingInfo(SLAM);
 
         if (n == 4) {
+            // every 2 seconds, upload map
             n = 0;
-
-            size_t stopCount = 0;
-            vector<thread> threads(nClient);
-            for (size_t i = 0; i < nClient; i++) {
-                auto mediator = mediators[i];
-                if (emptyCountMap[mediator->mnId] > 5) {
-                    stopCount++;
-                    continue;
-                }
-
-                if (nClient > 1) {
-                    threads[i] = thread([&SLAMs, &mediator, i]() {
-                        UploadMap(SLAMs[i], mediator);
-                    });
-                } else {
-                    UploadMap(SLAMs[i], mediator);
-                }
-            }
-            if (stopCount == nClient) {
-                b.store(false);
-            }
-
-            for (size_t i = 0; i < nClient; i++) {
-                if (threads[i].joinable()) {
-                    threads[i].join();
-                }
-            }
+            UploadMap(SLAM);
         }
-    }
-}
-
-void setupNetwork(vector<System *> SLAMs, vector<AgentMediator *> mediators) {
-    for (size_t i = 0; i < SLAMs.size(); i++) {
-        SLAMs[i]->GetMap()->TryConnect(SLAMs[i]);
-        mediators[i]->GetMap()->TryConnect(mediators[i]);
     }
 }
 
 int main(int argc, char **argv) {
-    OptionParser op("SwarmMap - Scaling Up Real-time Collaborative Visual SLAM at the Edge");
+    OptionParser op("SwarmMap - Scaling Up Real-time Collaborative Visual SLAM at the Edge\nSwarmMap Client");
     auto help_option   = op.add<Switch>("h", "help", "print this message");
     auto voc_option = op.add<Value<std::string>>("v", "voc", "path to vocabulary");
     // multiple dataset
@@ -179,7 +180,6 @@ int main(int argc, char **argv) {
     auto log_level_option  = op.add<Value<std::string>>("l", "log", "log level: error/warn/info/debug", "debug");
     auto viewer_option  = op.add<Value<bool>>("u", "viewer", "use frame viewer", true);
     auto map_viewer_option  = op.add<Value<bool>>("m", "mapviewer", "use map viewer", true);
-    auto client_number_option  = op.add<Value<int>>("c", "client", "client number", 2);
     op.parse(argc, argv);
 
     // print auto-generated help message
@@ -210,6 +210,11 @@ int main(int argc, char **argv) {
     file["IMAGES"] >> imagePaths;
     auto nDataset = imagePaths.size();
 
+    if (nDataset != 1) {
+        error("single agent only support one dataset");
+        return 2;
+    }
+
     if (datasetType == "euroc") {
         file["TIMES"] >> timeFiles;
         if (imagePaths.size() != timeFiles.size()) {
@@ -220,24 +225,18 @@ int main(int argc, char **argv) {
 
     // Retrieve paths to images
     // vector of image paths
-    vector<vector<string>> imageDatasetList(nDataset);
+    vector<string> imageList;
     // vector of timestamps
-    vector<vector<double>> timestampSetList(nDataset);
+    vector<double> timestampList;
 
-    // max length of the dataset
-    size_t maxSeqLength = 0;
-    for (size_t i = 0; i < nDataset; ++i) {
-        const auto imagePath = imagePaths[i];
-        if (datasetType == "tum") {
-            DataSetUtil::LoadTUM(string(imagePath), imageDatasetList[i], timestampSetList[i]);
-        } else if (datasetType == "euroc") {
-            const auto timesFile = timeFiles[i];
-            DataSetUtil::LoadEuRoC(string(imagePath), timesFile, imageDatasetList[i], timestampSetList[i]);
-        } else if (datasetType == "kitti") {
-            DataSetUtil::LoadKITTI(string(imagePath), imageDatasetList[i], timestampSetList[i]);
-        }
-
-        maxSeqLength = std::max(maxSeqLength, imageDatasetList[i].size());
+    const auto imagePath = imagePaths[0];
+    if (datasetType == "tum") {
+        DataSetUtil::LoadTUM(string(imagePath), imageList, timestampList);
+    } else if (datasetType == "euroc") {
+        const auto timesFile = timeFiles[0];
+        DataSetUtil::LoadEuRoC(string(imagePath), timesFile, imageList, timestampList);
+    } else if (datasetType == "kitti") {
+        DataSetUtil::LoadKITTI(string(imagePath), imageList, timestampList);
     }
 
     CLogger::SetLevel(log_level_option->value());
@@ -250,55 +249,16 @@ int main(int argc, char **argv) {
     pVoc->loadFromBinaryFile(vocFile);
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    const size_t nClient = client_number_option->value();
+    ORB_SLAM2::System system(vocFile, settingsFile, ORB_SLAM2::System::MONOCULAR, use_viewer, use_map_viewer);
 
-    vector<ORB_SLAM2::System *> SLAMs;
-    vector<ORB_SLAM2::AgentMediator *> mediators;
+    ORB_SLAM2::System *SLAM = &system;
 
-    if (nClient < nDataset) {
-//        error("client number should not be less than dataset number");
-//        return 2;
-        info("client number is less than dataset number, will only run some of the datasets");
-        nDataset = nClient;
-    }
+    string host = file["HOST"];
+    unsigned int port = stoi(file["PORT"]);
 
-    // initialize slam systems and server handler(AgentMediator)
-    for (size_t i = 0; i < nClient; ++i) {
-        // KEY: the constructor will change argv[2] so that the gl and cv process can not be done
-        AgentMediator *mediator;
-        if (nClient == 1) {
-            // make this mediator global
-            mediator = new ORB_SLAM2::AgentMediator(settingsFile, pVoc, use_map_viewer, true);
-            globalMediator = mediator;
-        } else {
-            mediator = new ORB_SLAM2::AgentMediator(settingsFile, pVoc, use_map_viewer);
-        }
-        auto SLAM = new ORB_SLAM2::System(vocFile, settingsFile, ORB_SLAM2::System::MONOCULAR, use_map_viewer);
-        mediators.push_back(mediator);
-        SLAMs.push_back(SLAM);
-    }
+    RegisterRemote(SLAM, host, port);
 
-    MediatorScheduler::GetInstance().getSLAMSystem = [&SLAMs](unsigned long i){
-        if (i < SLAMs.size()) {
-            return SLAMs[i];
-        } else {
-            return static_cast<System *>(nullptr);
-        }
-    };
-
-    setupNetwork(SLAMs, mediators);
-
-    if (nClient > 1) {
-        auto pVoc2 = new ORBVocabulary();
-        pVoc2->loadFromBinaryFile(vocFile);
-
-        globalMediator = new ORB_SLAM2::AgentMediator(settingsFile, pVoc2, use_map_viewer, true);
-    } else if (nClient <= 0) {
-        error("AgentMediator number should be positive");
-        return 2;
-    }
-
-    auto tRetriever = new thread(Run, SLAMs, mediators, nClient);
+    auto tRetriever = thread(Run, SLAM);
 
 //    // Vector for tracking time statistics
 //    vector<double> vTimesTrack(nImages, 0);
@@ -307,46 +267,17 @@ int main(int argc, char **argv) {
 //    info("Start processing sequence ...");
 //    info("Images in the sequence: {}", nImages);
 //
-//    const auto nClip = nImages / nClient;
-//
-//    size_t nOverlap = 20 * 5;
-
-    // simplified thread pool
-    vector<thread *> threads(nClient, nullptr);
 
     // Main loop
-    for (size_t ni = 0; ni < maxSeqLength; ni++) {
+    for (size_t ni = 0; ni < imageList.size(); ni++) {
         Timer tTrack("Total Track Time", false);
 
-        // Pass the image to the SLAM system
-        for (size_t i = 0; i < nClient; ++i) {
-            size_t idx = ni;
+        const auto imageName = imageList[ni];
+        // Read image from file
+        double tframe = timestampList[ni];
 
-            // if i > `nDataset - 1`, then run `nDataset - 1`;
-            size_t datasetIdx = min(i, nDataset - 1);
-            const auto &images = imageDatasetList[datasetIdx];
-            const auto &timestamps = timestampSetList[datasetIdx];
-
-            if (idx >= images.size()) continue;
-
-            const auto imageName = images[idx];
-            // Read image from file
-            double tframe = timestamps[idx];
-
-            auto SLAM = SLAMs[i];
-            if (nClient > 1) {
-                // wait last track to be done
-                if (threads[i] != nullptr && threads[i]->joinable()) {
-                    threads[i]->join();
-                    delete threads[i];
-                    threads[i] = nullptr;
-                }
-
-                threads[i] = new thread(track, SLAM, imageName, tframe);
-            } else {
-                track(SLAM, imageName, tframe);
-            }
-        }
+        track(SLAM, imageName, tframe);
+    }
 
 //        auto const time = tTrack.get();
 //        if (time < 30) {
@@ -368,13 +299,7 @@ int main(int argc, char **argv) {
 //
 //        if(vTimesTrack[ni]<T)
 //            usleep((T-vTimesTrack[ni])*1e6);
-    }
 
-    for (auto &thread: threads) {
-        if (thread != nullptr && thread->joinable()) {
-            thread->join();
-        }
-    }
 
     if (use_viewer || use_map_viewer) {
         info("press any key to stop");
@@ -385,20 +310,11 @@ int main(int argc, char **argv) {
     if (b.load()) {
         b.store(false);
         debug("wait tRetriever to stop");
-        tRetriever->join();
+        tRetriever.join();
     }
 
-    for (auto &SLAM: SLAMs) {
-        SLAM->Shutdown();
-    }
+    SLAM->Shutdown();
 
-    for (auto &mediator: mediators) {
-        mediator->Shutdown();
-    }
-
-    if (globalMediator) {
-        globalMediator->Shutdown();
-    }
 
     // Tracking time statistics
 //    sort(vTimesTrack.begin(), vTimesTrack.end());
@@ -410,31 +326,12 @@ int main(int argc, char **argv) {
 //    info("median tracking time: {}", vTimesTrack[trackSize / 2]);
 //    info("mean tracking time: {}", totaltime / trackSize);
 
-//    LandmarkScoring::Save("result" + GetCurrentTime());
 
-    // Save camera trajectory
-    for (size_t i = 0; i < nClient; ++i) {
-        auto SLAM = SLAMs[i];
-        auto mediator = mediators[i];
-        debug("client map {} keyframe count: {}", SLAM->GetMap()->mnId, SLAM->GetMap()->KeyFramesInMap());
-        debug("client map {} mappoint count: {}", SLAM->GetMap()->mnId, SLAM->GetMap()->MapPointsInMap());
-        SLAM->SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory-" + GetCurrentTime() + "-" + std::to_string(SLAM->GetMap()->mnId) + ".txt");
-        SLAM->SaveMap("map-client-" + std::to_string(SLAM->GetMap()->mnId) + ".bin");
 
-        debug("server map {} keyframe count: {}", mediator->GetMap()->mnId, mediator->GetMap()->KeyFramesInMap());
-        debug("server map {} mappoint count: {}", mediator->GetMap()->mnId, mediator->GetMap()->MapPointsInMap());
+    debug("client map {} keyframe count: {}", SLAM->GetMap()->mnId, SLAM->GetMap()->KeyFramesInMap());
+    debug("client map {} mappoint count: {}", SLAM->GetMap()->mnId, SLAM->GetMap()->MapPointsInMap());
+    SLAM->SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory-" + GetCurrentTime() + "-" + std::to_string(SLAM->GetMap()->mnId) + ".txt");
+    SLAM->SaveMap("map-client-" + std::to_string(SLAM->GetMap()->mnId) + ".bin");
 
-        mediator->SaveMap("map-server-" + std::to_string(mediator->GetMap()->mnId) + ".bin");
-
-//        delete SLAM;
-//        delete mediator;
-    }
-
-    if (globalMediator && nClient > 1) {
-//        globalMediator->SaveMap("map-global-" + std::to_string(globalMediator->GetMap()->mnId) + ".bin");
-        globalMediator->SaveMap("map-global.bin");
-    }
-
-    MapManager::SaveGlobalMap("map");
     return 0;
 }

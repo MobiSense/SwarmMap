@@ -59,7 +59,6 @@ public:
     static void MapDistribute(AgentMediator *mediator);
 public:
     AgentMediator *globalMediator = nullptr;
-    std::function<System *(unsigned long)> getSLAMSystem;
 private:
     MediatorScheduler();
     // TODO(halcao): make it static

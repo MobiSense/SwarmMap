@@ -4,3 +4,7 @@ TYPE: 'euroc'
 SETTING: '/Examples/Monocular/EuRoC.yaml'
 IMAGES: ['/MH_02_easy/mav0/cam0/data']
 TIMES: ['/home/slam/edge-slam-new/src/Examples/Monocular/EuRoC_TimeStamps/MH02.txt']
+
+# ID dispatch address and port
+HOST: '0.0.0.0'
+PORT: 10088

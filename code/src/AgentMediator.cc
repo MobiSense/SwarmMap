@@ -31,8 +31,8 @@ id_t AgentMediator::nNextId = 0;
 unordered_map<id_t, KeyFrameDatabase *> AgentMediator::databaseMap;
 
 
-AgentMediator::AgentMediator(const string &strSettingsFile, ORBVocabulary *pVoc, const bool bUseViewer,
-                             const bool isGlobal_) : mbGlobal(isGlobal_) {
+AgentMediator::AgentMediator(const string &strSettingsFile, ORBVocabulary *pVoc, const bool isGlobal_,
+                             const bool bUseViewer, const bool bUseMapViewer) : mbGlobal(isGlobal_) {
     mpKeyFrameDatabase = new KeyFrameDatabase(*pVoc);
 
     // the map is in the mediator
